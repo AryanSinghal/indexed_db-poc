@@ -33,7 +33,6 @@ const Todo = () => {
   }, []);
 
   const generateData = async () => {
-    setAddDelete(true);
     const initialTime = new Date();
     if (dataStructure === 'array') {
       for (let i = 0; i < dataCount; i += 1) {
@@ -86,6 +85,10 @@ const Todo = () => {
     } catch (e) {
       return alert(`Error:  + ${e.stack || e}`);
     }
+  };
+
+  const disableButton = () => {
+    setAddDelete(true);
   };
 
   const handleScrollDownChange = (event) => {
@@ -161,8 +164,11 @@ const Todo = () => {
             color="primary"
             size="large"
             fullWidth
-            onClick={generateData}
-          //   disabled={this.isDisabled()}
+            onClick={() => {
+              disableButton();
+              generateData();
+            }}
+            disabled={addDelete}
           >
             Add Todo
           </Button>
@@ -173,7 +179,11 @@ const Todo = () => {
             color="primary"
             size="large"
             fullWidth
-            onClick={deleteData}
+            onClick={() => {
+              disableButton();
+              deleteData();
+            }}
+            disabled={addDelete}
           >
             Delete Todo
           </Button>
