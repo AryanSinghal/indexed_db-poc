@@ -4,7 +4,6 @@ import {
 } from '@material-ui/core';
 import faker from 'faker';
 import MaterialTable from 'material-table';
-// import { openDB } from 'idb';
 import Dexie from 'dexie';
 
 const Todo = () => {
