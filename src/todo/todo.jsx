@@ -1,17 +1,41 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
-  Paper, Button, Grid, TextField, MenuItem,
+  Button, Grid, TextField, MenuItem,
 } from '@material-ui/core';
 import faker from 'faker';
 import MaterialTable from 'material-table';
+// import { openDB } from 'idb';
+import Dexie from 'dexie';
 
 const Todo = () => {
   const [dataStructure, setDataStructure] = React.useState('array');
   const [array, setArray] = React.useState([]);
+  const [arrayFromDB, setArrayFromDB] = React.useState([]);
   const [dataCount, setDataCount] = React.useState(1);
   const [error, setError] = React.useState('');
+  const [store, setStore] = React.useState();
+  const [addDelete, setAddDelete] = React.useState(false);
 
-  const generateData = () => {
+  useEffect(() => {
+    try {
+      if (!('indexedDB' in window)) {
+        console.log('This browser doesn\'t support IndexedDB');
+        return;
+      }
+      const db = new Dexie('listOfObjects');
+      db.version(1).stores({
+        listOfObjects: 'id,jobTitle,jobType',
+      });
+      db.listOfObjects.clear();
+      setStore(db.listOfObjects);
+    } catch (err) {
+      console.log(err);
+    }
+  }, []);
+
+  const generateData = async () => {
+    setAddDelete(true);
+    const initialTime = new Date();
     if (dataStructure === 'array') {
       for (let i = 0; i < dataCount; i += 1) {
         array.push({
@@ -19,16 +43,49 @@ const Todo = () => {
           jobType: faker.name.jobType(),
         });
       }
-      setArray([...array]);
+      setAddDelete(false);
+      console.log('time taken by Array in inserting is:', (new Date() - initialTime));
+      return setArray([...array]);
+    }
+    try {
+      const arrayFromDBLength = arrayFromDB.length;
+      for (let i = 1; i <= dataCount; i += 1) {
+        store.add({
+          id: arrayFromDBLength + i,
+          jobTitle: faker.name.jobTitle(),
+          jobType: faker.name.jobType(),
+        });
+      }
+      const dbArray = await store.where('id').above(0).toArray();
+      console.log('time taken by DB in inserting is:', (new Date() - initialTime));
+      setAddDelete(false);
+      return setArrayFromDB(dbArray);
+    } catch (e) {
+      setAddDelete(false);
+      return alert(`Error:  + ${e.stack || e}`);
     }
   };
 
-  const deleteData = () => {
+  const deleteData = async () => {
+    const initialTime = new Date();
     if (dataStructure === 'array') {
-      for (let i = 0; i < dataCount; i += 1) {
+      const arrayLength = array.length;
+      for (let i = 0; i < dataCount && arrayLength; i += 1) {
         array.pop();
       }
-      setArray([...array]);
+      console.log('time taken by Array in deleting is:', (new Date() - initialTime));
+      return setArray([...array]);
+    }
+    try {
+      const arrayLength = arrayFromDB.length;
+      for (let i = 0; i < dataCount && arrayLength; i += 1) {
+        store.delete(arrayLength - i);
+      }
+      const dbArray = await store.where('id').above(0).toArray();
+      console.log('time taken by DB in deleting is:', (new Date() - initialTime));
+      return setArrayFromDB(dbArray);
+    } catch (e) {
+      return alert(`Error:  + ${e.stack || e}`);
     }
   };
 
@@ -59,6 +116,7 @@ const Todo = () => {
       label: 'IndexedDB',
     },
   ];
+
   const columns = [
     { title: 'Job Title', field: 'jobTitle' },
     { title: 'Job Type', field: 'jobType' },
@@ -75,7 +133,6 @@ const Todo = () => {
             label="Select Data Structure"
             value={dataStructure}
             onChange={handleScrollDownChange}
-            helperText="Please select your currency"
             variant="outlined"
           >
             {options.map((option) => (
@@ -123,20 +180,11 @@ const Todo = () => {
           </Button>
         </Grid>
       </Grid>
-      <div align="center">
-        {console.log(array)}
-        {
-          (array && array.length)
-            ? (
-              <MaterialTable
-                title="TODO"
-                columns={columns}
-                data={array}
-              />
-            )
-            : null
-        }
-      </div>
+      <MaterialTable
+        title="TODO"
+        columns={columns}
+        data={(dataStructure === 'array') ? [...array] : [...arrayFromDB]}
+      />
     </div>
   );
 };
