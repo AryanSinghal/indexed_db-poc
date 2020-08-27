@@ -54,8 +54,9 @@ const Todo = () => {
           jobType: faker.name.jobType(),
         });
       }
-      const dbArray = await store.where('id').above(0).toArray();
       console.log('time taken by DB in inserting is:', (new Date() - initialTime));
+      const dbArray = await store.where('id').above(0).toArray();
+      console.log('time taken by DB in inserting and retrieval is:', (new Date() - initialTime));
       setAddDelete(false);
       return setArrayFromDB(dbArray);
     } catch (e) {
@@ -72,6 +73,7 @@ const Todo = () => {
         array.pop();
       }
       console.log('time taken by Array in deleting is:', (new Date() - initialTime));
+      setAddDelete(false);
       return setArray([...array]);
     }
     try {
@@ -79,10 +81,13 @@ const Todo = () => {
       for (let i = 0; i < dataCount && arrayLength; i += 1) {
         store.delete(arrayLength - i);
       }
-      const dbArray = await store.where('id').above(0).toArray();
       console.log('time taken by DB in deleting is:', (new Date() - initialTime));
+      const dbArray = await store.where('id').above(0).toArray();
+      console.log('time taken by DB in deleting and retrieval is:', (new Date() - initialTime));
+      setAddDelete(false);
       return setArrayFromDB(dbArray);
     } catch (e) {
+      setAddDelete(false);
       return alert(`Error:  + ${e.stack || e}`);
     }
   };
@@ -92,9 +97,6 @@ const Todo = () => {
   };
 
   const handleScrollDownChange = (event) => {
-    if (event.target.value !== 'array') {
-      setArray([]);
-    }
     setDataStructure(event.target.value);
   };
 
