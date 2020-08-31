@@ -5,6 +5,10 @@ import {
 import faker from 'faker';
 import MaterialTable from 'material-table';
 import Dexie from 'dexie';
+import { forwardRef } from 'react';
+import {
+  ChevronLeft, ArrowDownward, Clear, ChevronRight, FirstPage, LastPage, Search,
+} from '@material-ui/icons';
 
 const Todo = () => {
   const [dataStructure, setDataStructure] = React.useState('array');
@@ -126,6 +130,16 @@ const Todo = () => {
     { title: 'Job Type', field: 'jobType' },
   ];
 
+  const tableIcons = {
+    FirstPage: forwardRef((props, ref) => <FirstPage {...props} ref={ref} />),
+    LastPage: forwardRef((props, ref) => <LastPage {...props} ref={ref} />),
+    NextPage: forwardRef((props, ref) => <ChevronRight {...props} ref={ref} />),
+    PreviousPage: forwardRef((props, ref) => <ChevronLeft {...props} ref={ref} />),
+    SortArrow: forwardRef((props, ref) => <ArrowDownward {...props} ref={ref} />),
+    ResetSearch: forwardRef((props, ref) => <Clear {...props} ref={ref} />),
+    Search: forwardRef((props, ref) => <Search {...props} ref={ref} />),
+  };
+  
   return (
     <div align="center">
       <br />
@@ -193,6 +207,7 @@ const Todo = () => {
       </Grid>
       <MaterialTable
         title="TODO"
+        icons={tableIcons}
         columns={columns}
         data={(dataStructure === 'array') ? [...array] : [...arrayFromDB]}
       />
